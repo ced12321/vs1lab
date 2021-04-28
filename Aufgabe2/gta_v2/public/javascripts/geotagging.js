@@ -13,7 +13,7 @@ console.log("The script is going to start...");
 // Hier wird die verwendete API für Geolocations gewählt
 // Die folgende Deklaration ist ein 'Mockup', das immer funktioniert und eine fixe Position liefert.
 GEOLOCATIONAPI = {
-    getCurrentPosition: function(onsuccess) {
+    getCurrentPosition: function (onsuccess) {
         onsuccess({
             "coords": {
                 "latitude": 49.013790,
@@ -46,9 +46,9 @@ var gtaLocator = (function GtaLocator(geoLocationApi) {
      * Bei Fehler Callback 'onerror' mit Meldung.
      * Callback Funktionen als Parameter übergeben.
      */
-    var tryLocate = function(onsuccess, onerror) {
+    var tryLocate = function (onsuccess, onerror) {
         if (geoLocationApi) {
-            geoLocationApi.getCurrentPosition(onsuccess, function(error) {
+            geoLocationApi.getCurrentPosition(onsuccess, function (error) {
                 var msg;
                 switch (error.code) {
                     case error.PERMISSION_DENIED:
@@ -72,14 +72,22 @@ var gtaLocator = (function GtaLocator(geoLocationApi) {
     };
 
     // Auslesen Breitengrad aus der Position
-    var getLatitude = function(position) {
+    var getLatitude = function (position) {
         return position.coords.latitude;
     };
 
     // Auslesen Längengrad aus Position
-    var getLongitude = function(position) {
+    var getLongitude = function (position) {
         return position.coords.longitude;
     };
+    var tryLocateError = function (msg) {
+        alert(msg);
+    }
+    var tryLocateSucsess = function (position){
+        document.getElementById("lat").value = getLatitude(position);
+        document.getElementById("long").value = getLongitude(position);
+
+    }
 
     // Hier API Key eintragen
     var apiKey = "YOUR_API_KEY_HERE";
@@ -93,7 +101,7 @@ var gtaLocator = (function GtaLocator(geoLocationApi) {
      * tags : Array mit Geotag Objekten, das auch leer bleiben kann
      * zoom: Zoomfaktor der Karte
      */
-    var getLocationMapSrc = function(lat, lon, tags, zoom) {
+    var getLocationMapSrc = function (lat, lon, tags, zoom) {
         zoom = typeof zoom !== 'undefined' ? zoom : 10;
 
         if (apiKey === "YOUR_API_KEY_HERE") {
@@ -102,7 +110,7 @@ var gtaLocator = (function GtaLocator(geoLocationApi) {
         }
 
         var tagList = "&pois=You," + lat + "," + lon;
-        if (tags !== undefined) tags.forEach(function(tag) {
+        if (tags !== undefined) tags.forEach(function (tag) {
             tagList += "|" + tag.name + "," + tag.latitude + "," + tag.longitude;
         });
 
@@ -119,11 +127,15 @@ var gtaLocator = (function GtaLocator(geoLocationApi) {
 
         readme: "Dieses Objekt enthält 'öffentliche' Teile des Moduls.",
 
-        updateLocation: function() {
+        updateLocation: function () {
+            tryLocate(tryLocateSucsess,tryLocateError);
+
             // TODO Hier Inhalt der Funktion "update" ergänzen
         }
 
-    }; // ... Ende öffentlicher Teil
+
+    }
+        ; // ... Ende öffentlicher Teil
 })(GEOLOCATIONAPI);
 
 /**
@@ -131,7 +143,8 @@ var gtaLocator = (function GtaLocator(geoLocationApi) {
  * angegebene Funktion aufgerufen. An dieser Stelle beginnt die eigentliche Arbeit
  * des Skripts.
  */
-$(function() {
-    alert("Please change the script 'geotagging.js'");
+$(function () {
+    gtaLocator.updateLocation();
     // TODO Hier den Aufruf für updateLocation einfügen
 });
+
