@@ -29,14 +29,40 @@ app.set('view engine', 'ejs');
  * Teste das Ergebnis im Browser unter 'http://localhost:3000/'.
  */
 
-// TODO: CODE ERGÄNZEN
+app.use(express.static('public'));
+
+app.get("/", function (req, res) {
+    res.render("index", {
+        title: "GeoTagApp"
+    });
+});
+
+app.post("/tagging", function (req, res) {
+    res.render("index", {
+        title: "tagging"
+    });
+});
+
+app.get("/discovery", function (req, res) {
+    res.render("index", {
+        title: "discovery"
+    });
+});
+
 
 /**
  * Konstruktor für GeoTag Objekte.
  * GeoTag Objekte sollen min. alle Felder des 'tag-form' Formulars aufnehmen.
  */
 
-// TODO: CODE ERGÄNZEN
+class GeotTag {
+    constructor(latitude,longitude,name,hashtag) {
+        this.latitude = latitude;
+        this.lognitude = longitude;
+        this.name = name;
+        this.hashtag = hashtag;
+    }
+}
 
 /**
  * Modul für 'In-Memory'-Speicherung von GeoTags mit folgenden Komponenten:
@@ -47,7 +73,35 @@ app.set('view engine', 'ejs');
  * - Funktion zum Löschen eines Geo Tags.
  */
 
-// TODO: CODE ERGÄNZEN
+let geoTags = [];
+
+export function radiusSearchGeoTags(radius, lat, long) {
+    const minLat = lat - radius;
+    const maxLat = lat + radius;
+    const minLong = long - radius;
+    const maxLong = long + radius;
+    let results = [];
+    geoTags.forEach(function (item, array){
+        if( item.latitude > minLat && item.latitude < maxLat  &&
+            item.longitude < maxLong && item.longitude > minLong) {
+            results.push(item);
+        }
+    });
+    return results;
+}
+
+export function bergriffSearchGeoTags(begriff) {
+    return geoTags.includes(begriff);
+}
+
+export function pushGeoTag(item) {
+    geoTags.push(item);
+}
+
+export function popGeoTag(item) {
+    geoTags.splice(geoTags.indexOf(item),1);
+}
+
 
 /**
  * Route mit Pfad '/' für HTTP 'GET' Requests.
