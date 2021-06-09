@@ -40,6 +40,7 @@ var gtaLocator = (function GtaLocator(geoLocationApi) {
 
     // Private Member
 
+
     /**
      * Funktion spricht Geolocation API an.
      * Bei Erfolg Callback 'onsuccess' mit Position.
@@ -128,14 +129,15 @@ var gtaLocator = (function GtaLocator(geoLocationApi) {
         readme: "Dieses Objekt enthält 'öffentliche' Teile des Moduls.",
 
         updateLocation: function () {
-            tryLocate(tryLocateSuccess,tryLocateError);
-            var  lat= document.getElementById("lat").value;
-            var  long= document.getElementById("long").value;
-            var url = getLocationMapSrc(lat,long,undefined,14);
 
+            if(document.getElementById("lat").value === "" || document.getElementById("long").value === "") {
+                tryLocate(tryLocateSuccess, tryLocateError);
+            }
+            let  lat = document.getElementById("lat").value;
+            let  long = document.getElementById("long").value;
+            let taglist_json = document.getElementById("result-img").getAttribute("data-tags");
+            let url = getLocationMapSrc(lat,long,JSON.parse(taglist_json),14);
             document.getElementById("result-img").src = url ;
-
-
         }
 
 

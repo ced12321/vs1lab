@@ -29,15 +29,15 @@
 			<legend>Enter new GeoTag</legend>
 			<!-- ############### Aufgabe1a Form1 Start -->
 			<form id="tag-form" action="/tagging" method="post">
-				<label for="lat">latitude</label>
-				<input class="text-input" required id="lat" type="text" pattern="^(-?\d+(\.\d+)?)$" value="">
+				<label for="lat" value="">latitude</label>
+				<input class="text-input" required id="lat" type="text" pattern="^(-?\d+(\.\d+)?)$" value="<% if(latitude !== undefined) %> <%= latitude %>">
 				<label for="long">longitude</label>
-				<input class="text-input" required id="long" type="text" pattern="^(-?\d+(\.\d+)?)$">
+				<input class="text-input" required id="long" type="text" pattern="^(-?\d+(\.\d+)?)$" value="<% if(longitude !== undefined) %><%= longitude; %>">
 				<label for="name">Name</label>
 				<input class="text-input" required id="name" type="text" pattern="[A-Za-z]{,10}"
-					   placeholder="HsKa Tag1">
+					   placeholder="HsKa Tag1" value="<% if(name !== undefined) %><%= name; %>">
 				<label for="tag">Hashtag</label>
-				<input class="text-input" id="tag" type="text" pattern="\#.{,10}" placeholder="#XXX">
+				<input class="text-input" id="tag" type="text" pattern="\#.{,10}" placeholder="#XXX" value="<% if(hashtag !== undefined) %><%= hashtag; %>">
 				<input id="submitGeoTag" class="submit-button" type="submit" value="submit">
 			</form>
 		</fieldset>
@@ -55,8 +55,8 @@
 				<legend>Filter by Searchterm</legend>
 				<input id="searchterm" type="text" placeholder="search term">
 				<input id="submitSearchTerm" class="submit-button" type="submit" value="apply">
-				<input class="text-input" required id="discoveryformlat" type="hidden">
-				<input class="text-input" required id="discoveryformlong" type="hidden">
+				<input class="text-input" required id="discoveryformlat" type="hidden" value=<% if(latitude !== undefined) %><%= latitude %>>
+				<input class="text-input" required id="discoveryformlong" type="hidden" value=<% if(longitude !== undefined) %><%= longitude %>>
 			</fieldset>
 		</form>
 		<!-- ############### Aufgabe1a Form2 Ende -->
@@ -72,7 +72,7 @@
 			</div>
 
 			<div class="tagmap row">
-				<img id="result-img" src="./images/mapview.jpg" alt="a map with locations"/>
+				<img id="result-img" src="./images/mapview.jpg" alt="a map with locations" data-tags=<%= JSON.stringify(taglist) %>/>
 				<div class="caption">Result map</div>
 			</div>
 		</section>

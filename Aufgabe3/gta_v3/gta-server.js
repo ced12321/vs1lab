@@ -4,6 +4,10 @@
  * Verzeichnisbaum implementieren. Dazu müssen die TODOs erledigt werden.
  */
 
+const standardRadius = 100;
+const standardLong = 49.01374065847857;
+const standardLat = 8.404893914899443;
+
 /**
  * Definiere Modul Abhängigkeiten und erzeuge Express app.
  */
@@ -22,6 +26,7 @@ app.use(bodyParser.urlencoded({
 }));
 
 // Setze ejs als View Engine
+app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 
 /**
@@ -31,19 +36,6 @@ app.set('view engine', 'ejs');
 
 app.use(express.static('public'));
 
-app.post("/tagging", function (req, res) {
-    res.render("index", {
-        title: "tagging"
-    });
-});
-
-app.get("/discovery", function (req, res) {
-    res.render("index", {
-        title: "discovery"
-    });
-});
-
-
 /**
  * Konstruktor für GeoTag Objekte.
  * GeoTag Objekte sollen min. alle Felder des 'tag-form' Formulars aufnehmen.
@@ -52,7 +44,7 @@ app.get("/discovery", function (req, res) {
 class GeotTag {
     constructor(latitude,longitude,name,hashtag) {
         this.latitude = latitude;
-        this.lognitude = longitude;
+        this.longitude = longitude;
         this.name = name;
         this.hashtag = hashtag;
     }
@@ -67,7 +59,42 @@ class GeotTag {
  * - Funktion zum Löschen eines Geo Tags.
  */
 
-let inMemorySave = require("./public/modules/InMemorySave");
+let inMemory = (function() {
+    let geoTags = [];
+
+    return {
+        radiusSearchGeoTags : function (radius, lat, long) {
+            const maxLat = lat + radius;
+            const minLong = long - radius;
+            const maxLong = long + radius;
+            const minLat = lat - radius;
+            let results = [];
+            geoTags.forEach(function (item, array){
+                if( item.latitude > minLat && item.latitude < maxLat  &&
+                    item.longitude < maxLong && item.longitude > minLong) {
+                    results.push(item);
+                }
+            });
+            return results;
+        },
+
+        bergriffSearchGeoTags : function (begriff) {
+            return geoTags.includes(begriff);
+        },
+
+        pushGeoTag : function (item) {
+            geoTags.push(item);
+        },
+
+        popGeoTag : function (item) {
+            geoTags.splice(geoTags.indexOf(item),1);
+        },
+
+        getTagList : function() {
+            return geoTags;
+        }
+    }
+})();
 
 /**
  * Route mit Pfad '/' für HTTP 'GET' Requests.
@@ -97,7 +124,18 @@ app.get('/', function(req, res) {
  * Die Objekte liegen in einem Standard Radius um die Koordinate (lat, lon).
  */
 
-// TODO: CODE ERGÄNZEN START
+app.post("/tagging", function (req, res) {
+    let body = req.body;
+    newTag = new GeotTag(body.latitude,body.longitude,body.name,body.hashtag);
+    inMemory.pushGeoTag(newTag);
+    res.render("gta",{
+        taglist: inMemory.getTagList(),
+        latitude: body.latitude,
+        longitude: body.longitude,
+        name: body.name,
+        hashtag: body.hashtag
+    })
+});
 
 /**
  * Route mit Pfad '/discovery' für HTTP 'POST' Requests.
@@ -111,13 +149,36 @@ app.get('/', function(req, res) {
  * Falls 'term' vorhanden ist, wird nach Suchwort gefiltert.
  */
 
-// TODO: CODE ERGÄNZEN
+app.get("/discovery", function (req, res) {
+    let body = req.body;
+    let taglist;
+
+    if(body.searchterm !== undefined && body.searchterm !== "") {
+        taglist = inMemory.bergriffSearchGeoTags(body.searchterm);
+    } else {
+        if(body.latitude !== undefined && body.longitude !== undefined) {
+            taglist = inMemory.radiusSearchGeoTags(standardRadius,body.latitude, body.longitude);
+        } else {
+            taglist = inMemory.radiusSearchGeoTags(standardRadius,standardLat, standardLong);
+        }
+    }
+
+    res.render("gta", {
+        title: "discovery",
+        taglist: taglist,
+        latitude: body.latitude,
+        longitude: body.longitude,
+        name: body.name,
+        hashtag: body.hashtag
+    });
+});
+
 
 /**
  * Setze Port und speichere in Express.
  */
 
-var port = 3000;
+var port = 42069;
 app.set('port', port);
 
 /**
