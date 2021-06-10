@@ -85,9 +85,20 @@ var gtaLocator = (function GtaLocator(geoLocationApi) {
         alert(msg);
     }
     var tryLocateSuccess = function (position){
-        document.getElementById("lat").value = getLatitude(position);
-        document.getElementById("long").value = getLongitude(position);
+        let lat = getLatitude(position);
+        let long = getLongitude(position);
+        document.getElementById("lat").value = lat;
+        document.getElementById("long").value = long;
+        let taglist_json = document.getElementById("result-img").getAttribute("data-tags");
+        let taglistParsed;
 
+        if(taglist_json === "[]/") {
+            taglistParsed = undefined;
+        } else {
+            taglistParsed = JSON.parse(taglist_json);
+        }
+        document.getElementById("result-img").src = getLocationMapSrc(lat,long,taglistParsed,14);
+        console.log("sucess");
     }
 
     // Hier API Key eintragen
@@ -132,12 +143,18 @@ var gtaLocator = (function GtaLocator(geoLocationApi) {
 
             if(document.getElementById("lat").value === "" || document.getElementById("long").value === "") {
                 tryLocate(tryLocateSuccess, tryLocateError);
+            } else {
+                let taglist_json = document.getElementById("result-img").getAttribute("data-tags");
+                let taglistParsed;
+                if(taglist_json === "[]/") {
+                    taglistParsed = undefined;
+                } else {
+                    taglistParsed = JSON.parse(taglist_json);
+                }
+                let lat = document.getElementById("lat").value;
+                let long = document.getElementById("long").value;
+                document.getElementById("result-img").src = getLocationMapSrc(lat,long,taglistParsed,14);
             }
-            let  lat = document.getElementById("lat").value;
-            let  long = document.getElementById("long").value;
-            let taglist_json = document.getElementById("result-img").getAttribute("data-tags");
-            let url = getLocationMapSrc(lat,long,JSON.parse(taglist_json),14);
-            document.getElementById("result-img").src = url ;
         }
 
 
@@ -152,6 +169,5 @@ var gtaLocator = (function GtaLocator(geoLocationApi) {
  */
 $(function () {
     gtaLocator.updateLocation();
-
 });
 

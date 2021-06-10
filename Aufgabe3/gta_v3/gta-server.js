@@ -107,7 +107,11 @@ let inMemory = (function() {
 
 app.get('/', function(req, res) {
     res.render('gta', {
-        taglist: []
+        taglist: inMemory.getTagList(),
+        latitude : undefined,
+        longitude : undefined,
+        hashtag : undefined,
+        name : undefined
     });
 });
 
@@ -126,8 +130,11 @@ app.get('/', function(req, res) {
 
 app.post("/tagging", function (req, res) {
     let body = req.body;
+    console.log(req.body);
     newTag = new GeotTag(body.latitude,body.longitude,body.name,body.hashtag);
+    console.log(newTag);
     inMemory.pushGeoTag(newTag);
+    console.log(inMemory.getTagList());
     res.render("gta",{
         taglist: inMemory.getTagList(),
         latitude: body.latitude,
