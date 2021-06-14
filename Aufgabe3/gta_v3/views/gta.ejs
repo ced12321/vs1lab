@@ -53,7 +53,7 @@
 		<form id="filter-form" action="/discovery" method="post">
 			<fieldset>
 				<legend>Filter by Searchterm</legend>
-				<input id="searchterm" type="text" placeholder="search term">
+				<input id="searchterm" name="searchterm" type="text" placeholder="search term">
 				<input id="submitSearchTerm" class="submit-button" type="submit" value="apply">
 				<input class="text-input" required id="discoveryformlat" type="hidden" value=<% if(latitude !== undefined) %><%= latitude %>>
 				<input class="text-input" required id="discoveryformlong" type="hidden" value=<% if(longitude !== undefined) %><%= longitude %>>

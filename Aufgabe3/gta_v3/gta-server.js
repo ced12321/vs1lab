@@ -79,7 +79,9 @@ let inMemory = (function() {
         },
 
         bergriffSearchGeoTags : function (begriff) {
-            return geoTags.includes(begriff);
+            return geoTags.filter((geoTag) => {
+                return geoTag.name.includes(begriff);
+            } )
         },
 
         pushGeoTag : function (item) {
@@ -156,7 +158,7 @@ app.post("/tagging", function (req, res) {
  * Falls 'term' vorhanden ist, wird nach Suchwort gefiltert.
  */
 
-app.get("/discovery", function (req, res) {
+app.post("/discovery", function (req, res) {
     let body = req.body;
     let taglist;
 
