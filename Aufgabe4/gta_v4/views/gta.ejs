@@ -28,7 +28,7 @@
 		<fieldset>
 			<legend>Enter new GeoTag</legend>
 			<!-- ############### Aufgabe1a Form1 Start -->
-			<form id="tag-form" action="/tagging" method="post">
+			<form id="tag-form">
 				<label for="lat" value="">latitude</label>
 				<input class="text-input" required id="lat" name="latitude" type="text" pattern="^(-?\d+(\.\d+)?)$" value="<% if(latitude !== undefined) %> <%= latitude %>">
 				<label for="long">longitude</label>
@@ -50,7 +50,7 @@
 		<h2>Discovery</h2>
 
 		<!-- ############### Aufgabe1a Form2 Start -->
-		<form id="filter-form" action="/discovery" method="post">
+		<form id="filter-form">
 			<fieldset>
 				<legend>Filter by Searchterm</legend>
 				<input id="searchterm" name="searchterm" type="text" placeholder="search term">

@@ -8,6 +8,15 @@
  */
 console.log("The script is going to start...");
 
+class GeotTag {
+    constructor(latitude,longitude,name,hashtag) {
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.name = name;
+        this.hashtag = hashtag;
+    }
+}
+
 // Es folgen einige Deklarationen, die aber noch nicht ausgeführt werden ...
 
 // Hier wird die verwendete API für Geolocations gewählt
@@ -161,6 +170,60 @@ var gtaLocator = (function GtaLocator(geoLocationApi) {
     }
         ; // ... Ende öffentlicher Teil
 })(GEOLOCATIONAPI);
+
+function onClickTagging(event) {
+    event.preventDefault();
+    const xhr = new XMLHttpRequest();
+    const lat = document.getElementById('lat').value;
+    const long = document.getElementById('long').value;
+    const name = document.getElementById('name').value;
+    const tag = document.getElementById('tag').value;
+    const geoTag = new GeotTag(lat,long,name,tag);
+
+    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+    xhr.open('POST','/tagging');
+    xhr.send(JSON.stringify(geoTag));
+    xhr.onload = function() {
+        if(xhr.readyState === 4 && xhr.status === 200) {
+            const content = name + '(' + lat + ', ' + long + ')' + tag;
+            const node = document.createElement('li');
+            const textNode = document.createTextNode(content);
+            node.appendChild(textNode);
+            document.getElementById('result').appendChild(node);
+        } else {
+            console.log("Error: adding to list failed");
+        }
+    }
+}
+
+function onClickDiscovery(event) {
+    event.preventDefault();
+    const xhr = new XMLHttpRequest();
+    const searchTerm = document.getElementById("searchterm").value;
+
+    xhr.open('GET', '/geotags/name=' + searchTerm);
+    if(xhr.readyState === 4 && xhr.status === 200) {
+        const data = JSON.parse(xhr.responseText);
+        const result = document.getElementById('result');
+        result.innerHTML = "";
+        data.forEach(function (tag) {
+            const content = tag.name + '(' + tag.latitude + ', ' + tag.longitude + ')' + tag.tag;
+            const node = document.createElement('li');
+            const textNode = document.createTextNode(content);
+            node.appendChild(textNode);
+            result.appendChild(node);
+        });
+    } else {
+        console.log("Error: search failed");
+    }
+    xhr.send();
+    xhr.onload = function () {
+    }
+}
+
+document.getElementById('submitGeoTag').addEventListener('click', onClickTagging);
+document.getElementById('submitSearchTerm').addEventListener('click', onClickDiscovery);
+
 
 /**
  * $(function(){...}) wartet, bis die Seite komplett geladen wurde. Dann wird die

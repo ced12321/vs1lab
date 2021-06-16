@@ -13,7 +13,7 @@ const standardLat = 8.404893914899443;
  */
 
 var http = require('http');
-//var path = require('path');
+var path = require('path');
 var logger = require('morgan');
 var bodyParser = require('body-parser');
 var express = require('express');
@@ -41,7 +41,7 @@ app.use(express.static('public'));
  * GeoTag Objekte sollen min. alle Felder des 'tag-form' Formulars aufnehmen.
  */
 
-class GeotTag {
+class GeoTag {
     constructor(latitude,longitude,name,hashtag) {
         this.latitude = latitude;
         this.longitude = longitude;
@@ -133,7 +133,7 @@ app.get('/', function(req, res) {
 app.post("/tagging", function (req, res) {
     let body = req.body;
     console.log(req.body);
-    newTag = new GeotTag(body.latitude,body.longitude,body.name,body.hashtag);
+    let newTag = new GeoTag(body.latitude,body.longitude,body.name,body.hashtag);
     console.log(newTag);
     inMemory.pushGeoTag(newTag);
     console.log(inMemory.getTagList());
@@ -182,6 +182,56 @@ app.post("/discovery", function (req, res) {
     });
 });
 
+// Rest API
+
+app.get('/geotags/:name', function(req,res) {
+    if(req.params.name !== undefined) {
+        const tag = inMemory.bergriffSearchGeoTags(req.params.id);
+        if(tag === undefined) {
+            res.status(402).end();
+        } else {
+            res.json(tag);
+        }
+    } else {
+        res.status(400).end();
+    }
+});
+
+app.put('/geotags/:name', function(req,res) {
+    if(req.params.id !== undefined) {
+        const tag = inMemory.bergriffSearchGeoTags(req.params.id);
+        if(tag) {
+            tag.longitude = req.body.longitude;
+            tag.latitude = req.body.latitude;
+            tag.name = req.body.name;
+            tag.hashtag = req.body.hashtag;
+        } else {
+            let newTag = new GeoTag(req.body.longitude,req.body.latitude,req.body.name,req.body.hashtag);
+            inMemory.pushGeoTag(newTag);
+        }
+        req.status(201).end();
+    } else {
+        res.status(400).end();
+    }
+})
+
+app.delete('/geotags/:name', function(req, res) {
+    if(req.params.id !== undefined) {
+        const tag = inMemory.bergriffSearchGeoTags(req.params.id);
+        if(tag) {
+            inMemory.popGeoTag(tag);
+            req.status(200).end();
+        } else {
+            req.status(400).end();
+        }
+    } else {
+        res.status(400).end();
+    }
+});
+
+app.get('/test', function(req,res) {
+    res.status(205).end();
+})
 
 /**
  * Setze Port und speichere in Express.
