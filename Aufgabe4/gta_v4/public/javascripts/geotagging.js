@@ -207,7 +207,7 @@ function onClickDiscovery(event) {
     const xhr = new XMLHttpRequest();
     const searchTerm = document.getElementById("searchterm").value;
 
-    xhr.open('GET', '/geotags/name=' + searchTerm);
+    xhr.open('GET', '/geotags/?name=' + searchTerm);
     xhr.send();
     xhr.onload = function () {
         if(xhr.readyState === 4 && (xhr.status === 200 || xhr.status === 201 || xhr.status === 304)) {

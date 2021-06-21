@@ -85,6 +85,12 @@ let inMemory = (function() {
             } )
         },
 
+        existsTag : function (name) {
+            return geoTags.find((geoTag) => {
+                return (geoTag.name === name);
+            });
+        },
+
         pushGeoTag : function (item) {
             geoTags.push(item);
         },
@@ -118,76 +124,12 @@ app.get('/', function(req, res) {
     });
 });
 
-/**
- * Route mit Pfad '/tagging' für HTTP 'POST' Requests.
- * (http://expressjs.com/de/4x/api.html#app.post.method)
- *
- * Requests enthalten im Body die Felder des 'tag-form' Formulars.
- * (http://expressjs.com/de/4x/api.html#req.body)
- *
- * Mit den Formulardaten wird ein neuer Geo Tag erstellt und gespeichert.
- *
- * Als Response wird das ejs-Template mit Geo Tag Objekten gerendert.
- * Die Objekte liegen in einem Standard Radius um die Koordinate (lat, lon).
- */
-
-app.post("/tagging", function (req, res) {
-    let body = req.body;
-    console.log(req.body);
-    let newTag = new GeoTag(body.latitude,body.longitude,body.name,body.hashtag);
-    console.log(newTag);
-    inMemory.pushGeoTag(newTag);
-    console.log(inMemory.getTagList());
-    res.render("gta",{
-        taglist: inMemory.getTagList(),
-        latitude: body.latitude,
-        longitude: body.longitude,
-        name: body.name,
-        hashtag: body.hashtag
-    })
-});
-
-/**
- * Route mit Pfad '/discovery' für HTTP 'POST' Requests.
- * (http://expressjs.com/de/4x/api.html#app.post.method)
- *
- * Requests enthalten im Body die Felder des 'filter-form' Formulars.
- * (http://expressjs.com/de/4x/api.html#req.body)
- *
- * Als Response wird das ejs-Template mit Geo Tag Objekten gerendert.
- * Die Objekte liegen in einem Standard Radius um die Koordinate (lat, lon).
- * Falls 'term' vorhanden ist, wird nach Suchwort gefiltert.
- */
-
-app.post("/discovery", function (req, res) {
-    let body = req.body;
-    let taglist;
-
-    if(body.searchterm !== undefined && body.searchterm !== "") {
-        taglist = inMemory.bergriffSearchGeoTags(body.searchterm);
-    } else {
-        if(body.latitude !== undefined && body.longitude !== undefined) {
-            taglist = inMemory.radiusSearchGeoTags(standardRadius,body.latitude, body.longitude);
-        } else {
-            taglist = inMemory.radiusSearchGeoTags(standardRadius,standardLat, standardLong);
-        }
-    }
-
-    res.render("gta", {
-        title: "discovery",
-        taglist: taglist,
-        latitude: body.latitude,
-        longitude: body.longitude,
-        name: body.name,
-        hashtag: body.hashtag
-    });
-});
 
 // Rest API
 
 app.get('/geotags/:name', function(req,res) {
     if(req.params.name !== undefined) {
-        const tag = inMemory.bergriffSearchGeoTags(req.params.name.split("=")[1]);
+        const tag = inMemory.existsTag(req.params.name);
         res.json(tag);
         res.status(200).end();
     } else {
@@ -195,15 +137,23 @@ app.get('/geotags/:name', function(req,res) {
     }
 });
 
+app.get('/geotags', function(req,res) {
+    if(req.query.name) {
+        const tag = inMemory.bergriffSearchGeoTags(req.query.name);
+        res.json(tag);
+        res.status(200).end();
+    } else {
+        const tag = inMemory.getTagList();
+        res.json(tag);
+        res.status(200).end();
+    }
+});
+
 app.post('/geotags', function(req,res) {
-    console.log(req.body);
     if(req.body.name !== undefined) {
-        const tag = inMemory.bergriffSearchGeoTags(req.body.name);
-        if(tag.length > 0) {
-            tag.longitude = req.body.longitude;
-            tag.latitude = req.body.latitude;
-            tag.name = req.body.name;
-            tag.hashtag = req.body.hashtag;
+        const tag = inMemory.existsTag(req.body.name);
+        if(tag) {
+            res.status(400).end();
         } else {
             let newTag = new GeoTag(req.body.longitude,req.body.latitude,req.body.name,req.body.hashtag);
             inMemory.pushGeoTag(newTag);
@@ -212,11 +162,28 @@ app.post('/geotags', function(req,res) {
     } else {
         res.status(400).end();
     }
-})
+});
+
+app.put('/geotags/:name', function(req,res) {
+    if(req.params.name !== undefined) {
+        const tag = inMemory.existsTag(req.params.name);
+        if(tag) {
+            if(req.body.longitude) tag.longitude = req.body.longitude;
+            if(req.body.latitude) tag.latitude = req.body.latitude;
+            if(req.body.name) tag.name = req.body.name;
+            if(req.body.hashtag) tag.hashtag = req.body.hashtag;
+            res.status(200).end();
+        } else {
+            res.status(401).end();
+        }
+    } else {
+        res.status(400).end();
+    }
+});
 
 app.delete('/geotags/:name', function(req, res) {
-    if(req.params.id !== undefined) {
-        const tag = inMemory.bergriffSearchGeoTags(req.params.id);
+    if(req.params.name !== undefined) {
+        const tag = inMemory.existsTag(req.params.name);
         if(tag) {
             inMemory.popGeoTag(tag);
             res.status(200).end();
