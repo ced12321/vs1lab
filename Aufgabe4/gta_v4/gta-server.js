@@ -35,6 +35,7 @@ app.set('view engine', 'ejs');
  */
 
 app.use(express.static('public'));
+app.use(bodyParser.json());
 
 /**
  * Konstruktor für GeoTag Objekte.
@@ -186,21 +187,19 @@ app.post("/discovery", function (req, res) {
 
 app.get('/geotags/:name', function(req,res) {
     if(req.params.name !== undefined) {
-        const tag = inMemory.bergriffSearchGeoTags(req.params.id);
-        if(tag === undefined) {
-            res.status(402).end();
-        } else {
-            res.json(tag);
-        }
+        const tag = inMemory.bergriffSearchGeoTags(req.params.name.split("=")[1]);
+        res.json(tag);
+        res.status(200).end();
     } else {
         res.status(400).end();
     }
 });
 
-app.put('/geotags/:name', function(req,res) {
-    if(req.params.id !== undefined) {
-        const tag = inMemory.bergriffSearchGeoTags(req.params.id);
-        if(tag) {
+app.post('/geotags', function(req,res) {
+    console.log(req.body);
+    if(req.body.name !== undefined) {
+        const tag = inMemory.bergriffSearchGeoTags(req.body.name);
+        if(tag.length > 0) {
             tag.longitude = req.body.longitude;
             tag.latitude = req.body.latitude;
             tag.name = req.body.name;
@@ -209,7 +208,7 @@ app.put('/geotags/:name', function(req,res) {
             let newTag = new GeoTag(req.body.longitude,req.body.latitude,req.body.name,req.body.hashtag);
             inMemory.pushGeoTag(newTag);
         }
-        req.status(201).end();
+        res.status(201).end();
     } else {
         res.status(400).end();
     }
@@ -220,9 +219,9 @@ app.delete('/geotags/:name', function(req, res) {
         const tag = inMemory.bergriffSearchGeoTags(req.params.id);
         if(tag) {
             inMemory.popGeoTag(tag);
-            req.status(200).end();
+            res.status(200).end();
         } else {
-            req.status(400).end();
+            res.status(400).end();
         }
     } else {
         res.status(400).end();

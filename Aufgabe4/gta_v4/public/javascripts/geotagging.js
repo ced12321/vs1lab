@@ -8,7 +8,7 @@
  */
 console.log("The script is going to start...");
 
-class GeotTag {
+class GeoTag {
     constructor(latitude,longitude,name,hashtag) {
         this.latitude = latitude;
         this.longitude = longitude;
@@ -178,18 +178,24 @@ function onClickTagging(event) {
     const long = document.getElementById('long').value;
     const name = document.getElementById('name').value;
     const tag = document.getElementById('tag').value;
-    const geoTag = new GeotTag(lat,long,name,tag);
+    const geoTag = new GeoTag(lat,long,name,tag);
 
+    xhr.open('POST','/geotags');
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    xhr.open('POST','/tagging');
     xhr.send(JSON.stringify(geoTag));
     xhr.onload = function() {
-        if(xhr.readyState === 4 && xhr.status === 200) {
+        if(xhr.readyState === 4 && (xhr.status === 200 || xhr.status === 201)) {
             const content = name + '(' + lat + ', ' + long + ')' + tag;
             const node = document.createElement('li');
             const textNode = document.createTextNode(content);
             node.appendChild(textNode);
-            document.getElementById('result').appendChild(node);
+            document.getElementById('results').appendChild(node);
+            let dataTags = document.getElementById('result-img').getAttribute("data-tags");
+            const dataTagsParsed = JSON.parse(dataTags);
+            dataTagsParsed.push(geoTag);
+            dataTags = JSON.stringify(dataTagsParsed);
+            document.getElementById('result-img').setAttribute("data-tags",dataTags);
+            gtaLocator.updateLocation();
         } else {
             console.log("Error: adding to list failed");
         }
@@ -202,27 +208,29 @@ function onClickDiscovery(event) {
     const searchTerm = document.getElementById("searchterm").value;
 
     xhr.open('GET', '/geotags/name=' + searchTerm);
-    if(xhr.readyState === 4 && xhr.status === 200) {
-        const data = JSON.parse(xhr.responseText);
-        const result = document.getElementById('result');
-        result.innerHTML = "";
-        data.forEach(function (tag) {
-            const content = tag.name + '(' + tag.latitude + ', ' + tag.longitude + ')' + tag.tag;
-            const node = document.createElement('li');
-            const textNode = document.createTextNode(content);
-            node.appendChild(textNode);
-            result.appendChild(node);
-        });
-    } else {
-        console.log("Error: search failed");
-    }
     xhr.send();
     xhr.onload = function () {
+        if(xhr.readyState === 4 && (xhr.status === 200 || xhr.status === 201 || xhr.status === 304)) {
+            const data = JSON.parse(xhr.responseText);
+            const result = document.getElementById('results');
+            while(result.firstChild) {
+                result.removeChild(result.firstChild);
+            }
+            data.forEach(function (tag) {
+                const content = tag.name + '(' + tag.latitude + ', ' + tag.longitude + ')' + tag.hashtag;
+                const node = document.createElement('li');
+                const textNode = document.createTextNode(content);
+                node.appendChild(textNode);
+                result.appendChild(node);
+            });
+        } else {
+            console.log("Error: search failed");
+        }
     }
+
+
 }
 
-document.getElementById('submitGeoTag').addEventListener('click', onClickTagging);
-document.getElementById('submitSearchTerm').addEventListener('click', onClickDiscovery);
 
 
 /**
@@ -232,5 +240,9 @@ document.getElementById('submitSearchTerm').addEventListener('click', onClickDis
  */
 $(function () {
     gtaLocator.updateLocation();
+    console.log("getElementById");
+    document.getElementById('submitGeoTag').addEventListener('click', onClickTagging);
+    document.getElementById('submitSearchTerm').addEventListener('click', onClickDiscovery);
+    console.log(document.getElementById('submitGeoTag'));
 });
 
